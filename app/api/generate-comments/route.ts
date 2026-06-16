@@ -24,32 +24,18 @@ export async function POST(request: NextRequest) {
 
   try {
     const model = genAI.getGenerativeModel({
-      model: "gemini-2.0-flash",
+      model: "gemini-2.5-flash-lite",
       systemInstruction: SYSTEM_PROMPT,
     });
 
-    const result = await model.generateContentStream(prompt);
+    const result = await model.generateContent(prompt);
+    const raw = result.response.text();
+    // Strip markdown code fences Gemini sometimes adds
+    const text = raw.replace(/^```(?:json)?\s*/i, "").replace(/\s*```\s*$/i, "").trim();
 
-    const readable = new ReadableStream({
-      async start(controller) {
-        try {
-          for await (const chunk of result.stream) {
-            const text = chunk.text();
-            if (text) {
-              controller.enqueue(new TextEncoder().encode(text));
-            }
-          }
-          controller.close();
-        } catch (err) {
-          controller.error(err);
-        }
-      },
-    });
-
-    return new Response(readable, {
+    return new Response(text, {
       headers: {
         "Content-Type": "text/plain; charset=utf-8",
-        "Transfer-Encoding": "chunked",
         "Cache-Control": "no-cache",
       },
     });
