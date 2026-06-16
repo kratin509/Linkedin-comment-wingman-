@@ -1,81 +1,87 @@
 "use client";
 
-import { useState } from "react";
-import { PostInput } from "@/components/PostInput";
-import { SmartModePanel } from "@/components/SmartModePanel";
-import { CommentGrid } from "@/components/CommentGrid";
-import { useCommentGeneration } from "@/hooks/useCommentGeneration";
+import { useState, useEffect } from "react";
+import { Sidebar, type Tab } from "@/components/Sidebar";
+import { GenerateTab } from "@/components/GenerateTab";
+import { HistoryTab } from "@/components/HistoryTab";
+import { SavedTab } from "@/components/SavedTab";
+import { ProfileTab } from "@/components/ProfileTab";
+import { getProfile, type UserProfile } from "@/lib/storage";
+
+function HelpTab() {
+  return (
+    <div className="max-w-lg mx-auto">
+      <h1 className="text-2xl font-bold text-foreground tracking-tight mb-6">Help & Feedback</h1>
+      <div className="rounded-xl border border-border bg-white shadow-sm p-6 space-y-4">
+        <div>
+          <h2 className="font-semibold text-foreground mb-1">How does it work?</h2>
+          <p className="text-sm text-muted-foreground">Paste any LinkedIn post, pick your goal, and click Generate. We&apos;ll write 5 authentic, human-sounding comments tailored to your objective.</p>
+        </div>
+        <hr className="border-border" />
+        <div>
+          <h2 className="font-semibold text-foreground mb-1">Why are comments so short?</h2>
+          <p className="text-sm text-muted-foreground">Short, specific comments get more replies than long ones. One clear thought beats three vague sentences every time on LinkedIn.</p>
+        </div>
+        <hr className="border-border" />
+        <div>
+          <h2 className="font-semibold text-foreground mb-1">What&apos;s &ldquo;No Specific Goal&rdquo;?</h2>
+          <p className="text-sm text-muted-foreground">Type what you genuinely want to say in plain words, and the AI will turn it into a natural LinkedIn comment that doesn&apos;t sound AI-generated.</p>
+        </div>
+        <hr className="border-border" />
+        <div>
+          <h2 className="font-semibold text-foreground mb-2">Send feedback</h2>
+          <p className="text-sm text-muted-foreground">Found a bug or have a suggestion? Reach out — we read everything.</p>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function Home() {
-  const [postText, setPostText] = useState("");
-  const [expertise, setExpertise] = useState("");
-  const [goal, setGoal] = useState("authentic");
-  const [userContext, setUserContext] = useState("");
+  const [tab, setTab] = useState<Tab>("generate");
+  const [profile, setProfile] = useState<UserProfile>({ name: "", role: "" });
 
-  const { comments, isLoading, regeneratingId, error, generate, regenerateSingle, clearError } =
-    useCommentGeneration();
-
-  const opts = { postText, expertise, goal, userContext };
-
-  const handleGenerate = () => {
-    if (!postText.trim() || isLoading) return;
-    clearError();
-    generate(opts);
-  };
+  useEffect(() => {
+    setProfile(getProfile());
+  }, []);
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b border-border bg-white">
-        <div className="mx-auto max-w-2xl px-4 py-4 flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-white text-sm font-bold">
-            in
-          </div>
-          <span className="font-semibold text-foreground">Comment Wingman</span>
-          <span className="ml-auto text-xs text-muted-foreground">
-            Comments that sound like <em>you</em>
-          </span>
-        </div>
-      </header>
+    <div className="flex h-screen overflow-hidden bg-background">
+      <Sidebar activeTab={tab} onTabChange={setTab} profile={profile} />
 
-      <main className="mx-auto max-w-2xl px-4 py-8 space-y-5">
-        <PostInput
-          value={postText}
-          onChange={setPostText}
-          onGenerate={handleGenerate}
-          isLoading={isLoading}
-        />
-
-        <SmartModePanel
-          expertise={expertise}
-          goal={goal}
-          userContext={userContext}
-          onExpertiseChange={setExpertise}
-          onGoalChange={setGoal}
-          onUserContextChange={setUserContext}
-        />
-
-        {error && (
-          <div className="rounded-xl border border-red-200 bg-red-50 p-4 flex items-center justify-between gap-4">
-            <p className="text-sm text-red-600">{error}</p>
+      {/* Header + content */}
+      <div className="flex-1 flex flex-col min-w-0">
+        {/* Top bar */}
+        <header className="h-14 shrink-0 bg-white border-b border-border flex items-center justify-end px-6 gap-3">
+          {profile.name ? (
             <button
-              onClick={handleGenerate}
-              className="shrink-0 text-xs text-red-500 underline hover:text-red-700"
+              onClick={() => setTab("profile")}
+              className="flex items-center gap-2.5 hover:opacity-80 transition-opacity"
             >
-              Try again
+              <span className="text-sm font-medium text-foreground hidden sm:block">{profile.name}</span>
+              <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-white text-xs font-bold shrink-0">
+                {profile.name.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()}
+              </div>
             </button>
-          </div>
-        )}
+          ) : (
+            <button
+              onClick={() => setTab("profile")}
+              className="text-xs font-medium text-primary border border-primary/30 rounded-lg px-3 py-1.5 hover:bg-primary/5 transition-colors"
+            >
+              Set up profile →
+            </button>
+          )}
+        </header>
 
-        {(isLoading || comments.length > 0) && !error && (
-          <CommentGrid
-            comments={comments}
-            isLoading={isLoading}
-            regeneratingId={regeneratingId}
-            onRegenerate={(id) => regenerateSingle(id, opts)}
-          />
-        )}
-      </main>
+        {/* Main scrollable content */}
+        <main className="flex-1 overflow-y-auto p-6 lg:p-8">
+          {tab === "generate" && <GenerateTab />}
+          {tab === "history" && <HistoryTab />}
+          {tab === "saved" && <SavedTab />}
+          {tab === "profile" && <ProfileTab profile={profile} onProfileChange={setProfile} />}
+          {tab === "help" && <HelpTab />}
+        </main>
+      </div>
     </div>
   );
 }

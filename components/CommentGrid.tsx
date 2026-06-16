@@ -7,6 +7,8 @@ interface CommentGridProps {
   isLoading: boolean;
   regeneratingId: string | null;
   onRegenerate: (id: string) => void;
+  onSave?: (comment: Comment) => void;
+  savedIds?: Set<string>;
 }
 
 export function CommentGrid({
@@ -14,10 +16,12 @@ export function CommentGrid({
   isLoading,
   regeneratingId,
   onRegenerate,
+  onSave,
+  savedIds,
 }: CommentGridProps) {
   if (isLoading && comments.length === 0) {
     return (
-      <div className="grid grid-cols-1 gap-4">
+      <div className="space-y-4">
         {Array.from({ length: 5 }).map((_, i) => (
           <LoadingSkeleton key={i} />
         ))}
@@ -28,13 +32,15 @@ export function CommentGrid({
   if (comments.length === 0) return null;
 
   return (
-    <div className="grid grid-cols-1 gap-4">
+    <div className="space-y-4">
       {comments.map((comment) => (
         <CommentCard
           key={comment.id}
           comment={comment}
           isRegenerating={regeneratingId === comment.id}
           onRegenerate={() => onRegenerate(comment.id)}
+          onSave={onSave}
+          isSaved={savedIds?.has(comment.text)}
         />
       ))}
     </div>
