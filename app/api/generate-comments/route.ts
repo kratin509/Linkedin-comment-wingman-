@@ -14,13 +14,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
   }
 
-  const { postText, expertise, goal, regenerateId } = body;
+  const { postText, expertise, goal, userContext, regenerateId } = body;
 
   if (!postText?.trim()) {
     return NextResponse.json({ error: "postText is required" }, { status: 400 });
   }
 
-  const prompt = buildPrompt({ postText, expertise, goal, regenerateId });
+  const prompt = buildPrompt({ postText, expertise, goal, userContext, regenerateId });
 
   try {
     const model = genAI.getGenerativeModel({

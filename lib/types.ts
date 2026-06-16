@@ -8,6 +8,7 @@ export interface GenerateRequest {
   postText: string;
   expertise?: string;
   goal?: string;
+  userContext?: string;
   regenerateId?: string;
 }
 
@@ -16,14 +17,13 @@ export interface GenerateResponse {
 }
 
 export const GOAL_OPTIONS = [
-  { value: "no_goal", label: "No Specific Goal" },
-  { value: "get_noticed", label: "Get Noticed" },
-  { value: "build_authority", label: "Build Authority" },
-  { value: "start_conversation", label: "Start a Conversation" },
-  { value: "network_with_author", label: "Network with Author" },
-  { value: "get_reach", label: "Get Reach" },
-  { value: "learn_from_author", label: "Learn from Author" },
+  { value: "reach", label: "Commenting for Reach", icon: "📢" },
+  { value: "network", label: "Network with Author", icon: "🤝" },
+  { value: "convo", label: "Start a Convo", icon: "💬" },
+  { value: "authentic", label: "No Specific Goal", icon: "✨" },
 ] as const;
+
+export type GoalValue = typeof GOAL_OPTIONS[number]["value"];
 
 export const COMMENT_TYPE_LABELS: Record<string, string> = {
   reply_magnet: "Most Likely to Get a Reply",
