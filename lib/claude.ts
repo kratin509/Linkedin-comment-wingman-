@@ -1,7 +1,4 @@
-import Anthropic from "@anthropic-ai/sdk";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const client = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
-
-export default client;
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY!);
+export default genAI;

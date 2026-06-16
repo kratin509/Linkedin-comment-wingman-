@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import client from "@/lib/claude";
+import genAI from "@/lib/claude";
 import { buildPrompt, SYSTEM_PROMPT } from "@/lib/prompt";
 import type { GenerateRequest } from "@/lib/types";
 
@@ -23,31 +23,20 @@ export async function POST(request: NextRequest) {
   const prompt = buildPrompt({ postText, expertise, goal, regenerateId });
 
   try {
-    const stream = await client.messages.stream({
-      model: "claude-sonnet-4-6",
-      max_tokens: 2048,
-      system: [
-        {
-          type: "text",
-          text: SYSTEM_PROMPT,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          cache_control: { type: "ephemeral" } as any,
-        },
-      ],
-      messages: [{ role: "user", content: prompt }],
+    const model = genAI.getGenerativeModel({
+      model: "gemini-2.0-flash",
+      systemInstruction: SYSTEM_PROMPT,
     });
+
+    const result = await model.generateContentStream(prompt);
 
     const readable = new ReadableStream({
       async start(controller) {
         try {
-          for await (const event of stream) {
-            if (
-              event.type === "content_block_delta" &&
-              event.delta.type === "text_delta"
-            ) {
-              controller.enqueue(
-                new TextEncoder().encode(event.delta.text)
-              );
+          for await (const chunk of result.stream) {
+            const text = chunk.text();
+            if (text) {
+              controller.enqueue(new TextEncoder().encode(text));
             }
           }
           controller.close();
@@ -65,7 +54,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (err) {
-    console.error("Claude API error:", err);
+    console.error("Gemini API error:", err);
     return NextResponse.json(
       { error: "Generation failed. Check your API key and try again." },
       { status: 500 }
