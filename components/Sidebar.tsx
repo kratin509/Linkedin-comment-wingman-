@@ -48,19 +48,6 @@ export function Sidebar({ activeTab, onTabChange, profile }: SidebarProps) {
         ))}
       </nav>
 
-      <div className="m-3 rounded-xl bg-gradient-to-br from-primary/8 to-blue-100/50 border border-primary/10 p-4 text-center space-y-2.5">
-        <div className="flex justify-center gap-1">
-          <span className="text-xl">💬</span>
-          <span className="text-xl">✨</span>
-        </div>
-        <p className="text-xs text-slate-700 font-medium leading-relaxed">
-          Create impactful LinkedIn comments that get noticed.
-        </p>
-        <button className="w-full rounded-lg bg-primary text-white text-xs font-semibold py-2 hover:bg-primary/90 transition-colors">
-          Upgrade to Pro
-        </button>
-      </div>
-
       {profile.name && (
         <div className="px-3 pb-3">
           <div className="flex items-center gap-2.5 rounded-lg p-2 hover:bg-slate-50 cursor-pointer" onClick={() => onTabChange("profile")}>
